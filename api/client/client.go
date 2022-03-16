@@ -10,12 +10,12 @@ import (
 
 
 type Project struct {
-	project_name        string   `json:"project_name"`
-	stack_name string   `json:"stack_name"`
-	project_type string		`json:"project_type"`
-	instance_type string		`json:"instance_type"`
-	status string 		`json:"instance_type"`
-	email string		`json:"email"`
+	project_name     string  
+	stack_name string  
+	project_type string		
+	instance_type string		
+	status string 		
+	email string
 }
 // Client holds all of the information required to connect to a server
 type Client struct {
