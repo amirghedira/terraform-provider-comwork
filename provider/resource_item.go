@@ -2,10 +2,9 @@ package provider
 
 import (
 	"fmt"
+	"github.com/amirghedira/terraform-provider/api/client"
 	"regexp"
 	"strings"
-
-	"github.com/amirghedira/terraform-provider/api/client"
 	"github.com/hashicorp/terraform/helper/schema"
 )
 
@@ -75,7 +74,6 @@ func resourceItem() *schema.Resource {
 
 func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
-
 	item := client.Project{
 		project_name: d.Get("name").(string),
 		stack_name: d.Get("stack_name").(string),

@@ -10,7 +10,7 @@ import (
 
 
 type Project struct {
-	project_name     string  
+	project_name string  
 	stack_name string  
 	project_type string		
 	instance_type string		
