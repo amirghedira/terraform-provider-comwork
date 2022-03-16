@@ -2,11 +2,13 @@ package provider
 
 import (
 	"fmt"
-	"github.com/hashicorp/terraform/helper/resource"
-	"github.com/hashicorp/terraform/terraform"
-	"github.com/amirghedira/terraform-provider/api/client"
 	"regexp"
 	"testing"
+
+	"github.com/amirghedira/terraform-provider/api/client"
+
+	"github.com/hashicorp/terraform/helper/resource"
+	"github.com/hashicorp/terraform/terraform"
 )
 
 func TestAccItem_Basic(t *testing.T) {

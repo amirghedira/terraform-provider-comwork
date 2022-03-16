@@ -4,10 +4,9 @@ import (
 	"fmt"
 	"regexp"
 	"strings"
-	"net/http"
-	"github.com/hashicorp/terraform/helper/schema"
+
 	"github.com/amirghedira/terraform-provider/api/client"
-	"github.com/amirghedira/terraform-provider/api/server"
+	"github.com/hashicorp/terraform/helper/schema"
 )
 
 func validateName(v interface{}, k string) (ws []string, es []error) {
@@ -55,7 +54,7 @@ func resourceItem() *schema.Resource {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Email attached to this resource",
-			}
+			},
 			// "tags": {
 			// 	Type:        schema.TypeSet,
 			// 	Optional:    true,
@@ -80,10 +79,10 @@ func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 	item := client.Project{
 		project_name: d.Get("name").(string),
 		stack_name: d.Get("stack_name").(string),
-		type: d.Get("type").(string),
+		project_type: d.Get("project_type").(string),
 		instance_type: d.Get("instance_type").(string),
 		status: d.Get("status").(string),
-		email: d.Get("email").(string)
+		email: d.Get("email").(string),
 	}
 	err := apiClient.NewItem(&item)
 
@@ -126,7 +125,7 @@ func resourceUpdateItem(d *schema.ResourceData, m interface{}) error {
 		project_type: d.Get("project_type").(string),
 		instance_type: d.Get("instance_type").(string),
 		status: d.Get("status").(string),
-		email: d.Get("email").(string)
+		email: d.Get("email").(string),
 	}
 
 	err := apiClient.UpdateItem(&item)

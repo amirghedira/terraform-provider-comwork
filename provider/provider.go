@@ -1,9 +1,9 @@
 package provider
 
 import (
+	"github.com/amirghedira/terraform-provider/api/client"
 	"github.com/hashicorp/terraform/helper/schema"
 	"github.com/hashicorp/terraform/terraform"
-	"github.com/amirghedira/terraform-provider/api/client"
 )
 
 func Provider() terraform.ResourceProvider {
