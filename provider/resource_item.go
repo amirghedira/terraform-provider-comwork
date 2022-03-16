@@ -2,10 +2,11 @@ package provider
 
 import (
 	"fmt"
-	"github.com/amirghedira/terraform-provider/api/client"
+	"myprovider/api/client"
 	"regexp"
 	"strings"
-	"github.com/hashicorp/terraform/helper/schema"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
 func validateName(v interface{}, k string) (ws []string, es []error) {
@@ -13,7 +14,7 @@ func validateName(v interface{}, k string) (ws []string, es []error) {
 	var warns []string
 	value, ok := v.(string)
 	if !ok {
-		errs = append(errs, fmt.Errorf("Expected name to be string"))
+		errs = append(errs, fmt.Errorf("expected name to be string"))
 		return warns, errs
 	}
 	whiteSpace := regexp.MustCompile(`\s+`)
@@ -27,7 +28,7 @@ func validateName(v interface{}, k string) (ws []string, es []error) {
 func resourceItem() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"name": {
+			"project_name": {
 				Type:         schema.TypeString,
 				Required:     true,
 				Description:  "The name of the project",
@@ -39,12 +40,17 @@ func resourceItem() *schema.Resource {
 				Required:    true,
 				Description: "The name of the stack",
 			},
-			"type": {
+			"project_type": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Type of the environement",
 			},
 			"instance_type": {
+				Type:        schema.TypeString,
+				Optional:    true,
+				Description: "Type of the instance",
+			},
+			"status": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Type of the instance",
@@ -75,19 +81,19 @@ func resourceItem() *schema.Resource {
 func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
 	item := client.Project{
-		project_name: d.Get("name").(string),
-		stack_name: d.Get("stack_name").(string),
-		project_type: d.Get("project_type").(string),
-		instance_type: d.Get("instance_type").(string),
-		status: d.Get("status").(string),
-		email: d.Get("email").(string),
+		Project_name: d.Get("project_name").(string),
+		Stack_name: d.Get("stack_name").(string),
+		Project_type: d.Get("project_type").(string),
+		Instance_type: d.Get("instance_type").(string),
+		Status: d.Get("status").(string),
+		Email: d.Get("email").(string),
 	}
 	err := apiClient.NewItem(&item)
 
 	if err != nil {
 		return err
 	}
-	d.SetId(item.project_name)
+	d.SetId(item.Project_name)
 	return nil
 }
 
@@ -104,12 +110,12 @@ func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 
-	d.SetId(item.project_name)
-	d.Set("project_name", item.project_name)
-	d.Set("instance_type", item.instance_type)
-	d.Set("project_type", item.project_type)
-	d.Set("status", item.status)
-	d.Set("email", item.email)
+	d.SetId(item.Project_name)
+	d.Set("project_name", item.Project_name)
+	d.Set("instance_type", item.Instance_type)
+	d.Set("project_type", item.Project_type)
+	d.Set("status", item.Status)
+	d.Set("email", item.Email)
 
 	return nil
 }
@@ -118,12 +124,12 @@ func resourceUpdateItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
 
 	item := client.Project{
-		project_name: d.Get("project_name").(string),
-		stack_name: d.Get("project_name").(string),
-		project_type: d.Get("project_type").(string),
-		instance_type: d.Get("instance_type").(string),
-		status: d.Get("status").(string),
-		email: d.Get("email").(string),
+		Project_name: d.Get("project_name").(string),
+		Stack_name: d.Get("project_name").(string),
+		Project_type: d.Get("project_type").(string),
+		Instance_type: d.Get("instance_type").(string),
+		Status: d.Get("status").(string),
+		Email: d.Get("email").(string),
 	}
 
 	err := apiClient.UpdateItem(&item)

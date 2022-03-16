@@ -1,9 +1,10 @@
 package provider
 
 import (
-	"github.com/amirghedira/terraform-provider/api/client"
-	"github.com/hashicorp/terraform/helper/schema"
-	"github.com/hashicorp/terraform/terraform"
+	"myprovider/api/client"
+
+	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
+	"github.com/hashicorp/terraform-plugin-sdk/terraform"
 )
 
 func Provider() terraform.ResourceProvider {
@@ -19,10 +20,19 @@ func Provider() terraform.ResourceProvider {
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("SERVICE_TOKEN", ""),
 			},
+			"ngx_username": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("SERVICE_NGINX_USERNAME", ""),
+			},
+			"ngx_password": {
+				Type:        schema.TypeString,
+				Required:    true,
+				DefaultFunc: schema.EnvDefaultFunc("SERVICE_NGINX_PASSWORD", ""),
+			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			// "example_item": resourceItem(),
-			"cw_instance": resourceItem(),
+			"myprovider_instance": resourceItem(),
 
 		},
 		ConfigureFunc: providerConfigure,
@@ -32,6 +42,9 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	region := d.Get("region").(string)
 	token := d.Get("token").(string)
-	return client.NewClient(region, token), nil
+	ngx_username := d.Get("ngx_username").(string)
+	ngx_password := d.Get("ngx_password").(string)
+
+	return client.NewClient(region, token,ngx_username,ngx_password), nil
 
 }
