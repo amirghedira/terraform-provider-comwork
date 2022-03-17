@@ -8,7 +8,7 @@ import (
 	"net/http"
 )
 
-// Client holds all of the information required to connect to a server
+
 type Client struct {
 	region   string
 	authToken  string
@@ -29,10 +29,6 @@ type Project struct {
 
 }
 
-
-// NewClient returns a new client configured to communicate on a server with the
-// given hostname and port and to send an Authorization Header with the value of
-// token
 func NewClient(region string, token string, nginx_username string, nginx_password string) *Client {
 	return &Client{
 		region:       region,
@@ -57,51 +53,47 @@ func NewClient(region string, token string, nginx_username string, nginx_passwor
 // 	return &items, nil
 // }
 
-// GetItem gets an item with a specific name from the server
-func (c *Client) GetItem(name string) (*Project, error) {
+func (c *Client) GetProject(name string) (*Project, error) {
 	body, err := c.httpRequest(fmt.Sprintf("/instance/%v", name), "GET", bytes.Buffer{})
 	if err != nil {
 		return nil, err
 	}
-	item := &Project{}
-	err = json.NewDecoder(body).Decode(item)
+	project := &Project{}
+	err = json.NewDecoder(body).Decode(project)
 	if err != nil {
 		return nil, err
 	}
-	return item, nil
+	return project, nil
 }
 
-// NewItem creates a new Item
-func (c *Client) NewItem(item *Project) error {
+func (c *Client) AddProject(project *Project) error {
 	buf := bytes.Buffer{}
-	item.Region = c.region
-	err := json.NewEncoder(&buf).Encode(item)
+	project.Region = c.region
+	err := json.NewEncoder(&buf).Encode(project)
 	if err != nil {
 		return err
 	}
-	_, err = c.httpRequest(fmt.Sprintf("/provision/%s", item.Project_type), "POST", buf)
+	_, err = c.httpRequest(fmt.Sprintf("/provision/%s", project.Project_type), "POST", buf)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// UpdateItem updates the values of an item
-func (c *Client) UpdateItem(item *Project) error {
+func (c *Client) UpdateProject(project *Project) error {
 	buf := bytes.Buffer{}
-	err := json.NewEncoder(&buf).Encode(item)
+	err := json.NewEncoder(&buf).Encode(project)
 	if err != nil {
 		return err
 	}
-	_, err = c.httpRequest(fmt.Sprintf("/instance/%s", item.Project_name), "PATCH", buf)
+	_, err = c.httpRequest(fmt.Sprintf("/instance/%s", project.Project_name), "PATCH", buf)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-// DeleteItem removes an item from the server
-func (c *Client) DeleteItem(itemName string) error {
+func (c *Client) DeleteProject(itemName string) error {
 	_, err := c.httpRequest(fmt.Sprintf("/instance/%s", itemName), "DELETE", bytes.Buffer{})
 	if err != nil {
 		return err

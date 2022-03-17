@@ -2,6 +2,7 @@ package provider
 
 import (
 	"myprovider/api/client"
+	"os"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 	"github.com/hashicorp/terraform-plugin-sdk/terraform"
@@ -12,8 +13,14 @@ func Provider() terraform.ResourceProvider {
 		Schema: map[string]*schema.Schema{
 			"region": {
 				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("SERVICE_REGION", ""), 
+				Optional:    true,
+				DefaultFunc: func() (interface{}, error) {
+					if v := os.Getenv("PROVIDER_REGION"); v != "" {
+					  return v, nil
+					}
+			
+					return "fr-par-1", nil
+				},			
 			},
 			"token": {
 				Type:        schema.TypeString,
@@ -32,7 +39,7 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"comwork_instance": resourceItem(),
+			"comwork_instance": resourceInstance(),
 
 		},
 		ConfigureFunc: providerConfigure,

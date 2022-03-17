@@ -25,7 +25,34 @@ func validateName(v interface{}, k string) (ws []string, es []error) {
 	return warns, errs
 }
 
-func resourceItem() *schema.Resource {
+func validateInstanceType(v interface{}, k string) (ws []string, es []error) {
+
+	var errs []error
+	var warns []string
+	value, ok := v.(string)
+	if !ok {
+		errs = append(errs, fmt.Errorf("expected instance type to be string"))
+		return warns, errs
+	}
+	whiteSpace := regexp.MustCompile(`\s+`)
+	if whiteSpace.Match([]byte(value)) {
+		errs = append(errs, fmt.Errorf("name cannot contain whitespace. Got %s", value))
+		return warns, errs
+	}
+	instanceAllowedTypes := map[string]bool {
+		"DEV1-S": true,
+		"DEV1-M": true,
+		"DEV1-L": true,
+		"DEV1-XL": true,
+	}
+	if instanceAllowedTypes[value]{
+		errs = append(errs, fmt.Errorf("no instance type with that name. Got %s", value))
+		return warns, errs
+	}
+	return warns, errs
+}
+
+func resourceInstance() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
 			"project_name": {
@@ -42,45 +69,40 @@ func resourceItem() *schema.Resource {
 			},
 			"project_type": {
 				Type:        schema.TypeString,
-				Optional:    true,
-				Description: "Type of the environement",
+				Required:     true,
+				Description: "Type of the project",
 			},
 			"instance_type": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Type of the instance",
+				ValidateFunc: validateInstanceType,
 			},
 			"status": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Type of the instance",
+				Description: "status of the instance (poweroff,poweron)",
 			},
 			"email": {
 				Type:        schema.TypeString,
 				Optional:    true,
 				Description: "Email attached to this resource",
 			},
-			// "tags": {
-			// 	Type:        schema.TypeSet,
-			// 	Optional:    true,
-			// 	Description: "An optional list of tags, represented as a key, value pair",
-			// 	Elem:        &schema.Schema{Type: schema.TypeString},
-			// },
 		},
-		Create: resourceCreateItem,
-		Read:   resourceReadItem,
-		Update: resourceUpdateItem,
-		Delete: resourceDeleteItem,
-		Exists: resourceExistsItem,
+		Create: instanceCreateItem,
+		Read:   instanceReadItem,
+		Update: instanceUpdateItem,
+		Delete: instanceDeleteItem,
+		Exists: instanceExistsItem,
 		Importer: &schema.ResourceImporter{
 			State: schema.ImportStatePassthrough,
 		},
 	}
 }
 
-func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
+func instanceCreateItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
-	item := client.Project{
+	project := client.Project{
 		Project_name: d.Get("project_name").(string),
 		Stack_name: d.Get("stack_name").(string),
 		Project_type: d.Get("project_type").(string),
@@ -88,20 +110,20 @@ func resourceCreateItem(d *schema.ResourceData, m interface{}) error {
 		Status: d.Get("status").(string),
 		Email: d.Get("email").(string),
 	}
-	err := apiClient.NewItem(&item)
+	err := apiClient.AddProject(&project)
 
 	if err != nil {
 		return err
 	}
-	d.SetId(item.Project_name)
+	d.SetId(project.Project_name)
 	return nil
 }
 
-func resourceReadItem(d *schema.ResourceData, m interface{}) error {
+func instanceReadItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
 
 	itemId := d.Id()
-	item, err := apiClient.GetItem(itemId)
+	item, err := apiClient.GetProject(itemId)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			d.SetId("")
@@ -120,10 +142,10 @@ func resourceReadItem(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func resourceUpdateItem(d *schema.ResourceData, m interface{}) error {
+func instanceUpdateItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
 
-	item := client.Project{
+	project := client.Project{
 		Project_name: d.Get("project_name").(string),
 		Stack_name: d.Get("project_name").(string),
 		Project_type: d.Get("project_type").(string),
@@ -132,19 +154,19 @@ func resourceUpdateItem(d *schema.ResourceData, m interface{}) error {
 		Email: d.Get("email").(string),
 	}
 
-	err := apiClient.UpdateItem(&item)
+	err := apiClient.UpdateProject(&project)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func resourceDeleteItem(d *schema.ResourceData, m interface{}) error {
+func instanceDeleteItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
 
-	itemId := d.Id()
+	projectId := d.Id()
 
-	err := apiClient.DeleteItem(itemId)
+	err := apiClient.DeleteProject(projectId)
 	if err != nil {
 		return err
 	}
@@ -152,11 +174,11 @@ func resourceDeleteItem(d *schema.ResourceData, m interface{}) error {
 	return nil
 }
 
-func resourceExistsItem(d *schema.ResourceData, m interface{}) (bool, error) {
+func instanceExistsItem(d *schema.ResourceData, m interface{}) (bool, error) {
 	apiClient := m.(*client.Client)
 
-	itemId := d.Id()
-	_, err := apiClient.GetItem(itemId)
+	projectId := d.Id()
+	_, err := apiClient.GetProject(projectId)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return false, nil
