@@ -25,6 +25,8 @@ type Project struct {
 	Instance_type string `json:"instance_type"`
 	Status string `json:"status"`
 	Email string `json:"email"`
+	Region string `json:"region"`
+
 }
 
 
@@ -72,6 +74,7 @@ func (c *Client) GetItem(name string) (*Project, error) {
 // NewItem creates a new Item
 func (c *Client) NewItem(item *Project) error {
 	buf := bytes.Buffer{}
+	item.Region = c.region
 	err := json.NewEncoder(&buf).Encode(item)
 	if err != nil {
 		return err

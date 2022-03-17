@@ -32,7 +32,7 @@ func Provider() terraform.ResourceProvider {
 			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
-			"myprovider_instance": resourceItem(),
+			"comwork_instance": resourceItem(),
 
 		},
 		ConfigureFunc: providerConfigure,
