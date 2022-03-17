@@ -1,7 +1,7 @@
 package main
 
 import (
-	"myprovider/provider"
+	"github.com/comwork/comwork-provider/provider"
 
 	"github.com/hashicorp/terraform-plugin-sdk/plugin"
 )

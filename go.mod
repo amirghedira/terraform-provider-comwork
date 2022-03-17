@@ -1,4 +1,4 @@
-module myprovider
+module github.com/comwork/comwork-provider
 
 go 1.17
 

@@ -2,9 +2,10 @@ package provider
 
 import (
 	"fmt"
-	"myprovider/api/client"
 	"regexp"
 	"strings"
+
+	"github.com/comwork/comwork-provider/api/client"
 
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
