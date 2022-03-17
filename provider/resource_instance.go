@@ -84,6 +84,7 @@ func resourceInstance() *schema.Resource {
 				Optional:    true,
 				Description: "status of the instance (poweroff,poweron)",
 			},
+			
 			"email": {
 				Type:        schema.TypeString,
 				Optional:    true,

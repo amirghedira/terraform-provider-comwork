@@ -19,11 +19,16 @@ provider "comwork" {
 }
 
 resource "comwork_instance" "my_project" {
-  project_name = "terraform_testing_provision"
-  stack_name = "terraform_testing_provision"
+  project_name = "terraformprovisioning"
+  stack_name = "terraformprovisioning"
   project_type = "code"
   status = "poweroff"
   instance_type = "DEV1-S"
   email = "amirghedira06@gmail.com"
 
+}
+
+output "com_instance_output" {
+
+  value = comwork_instance.my_project.project_name
 }
