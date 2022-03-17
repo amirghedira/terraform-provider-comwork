@@ -46,7 +46,7 @@ func validateInstanceType(v interface{}, k string) (ws []string, es []error) {
 		"DEV1-L": true,
 		"DEV1-XL": true,
 	}
-	if instanceAllowedTypes[value]{
+	if !instanceAllowedTypes[value]{
 		errs = append(errs, fmt.Errorf("no instance type with that name. Got %s", value))
 		return warns, errs
 	}
