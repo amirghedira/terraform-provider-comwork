@@ -1,4 +1,3 @@
-
 terraform {
   required_providers {
     comwork = {
@@ -23,6 +22,7 @@ resource "comwork_instance" "my_project" {
   email = "amirghedira06@gmail.com"
 
 }
+
 
 output "com_instance_output" {
 
