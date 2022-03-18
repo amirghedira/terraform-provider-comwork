@@ -14,8 +14,7 @@ terraform {
 provider "comwork" {
     region = "fr-par-1"
     token = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJpZCI6MSwiZW1haWwiOiJhbWlyZ2hlZGlyYTA2QGdtYWlsLmNvbSIsInRpbWUiOiIwMy8xNy8yMDIyLCAwOToyMDowMiJ9.p1XRriQJhUSrXiPIfXg-cO3u6s_sKqZ3_7yRwNXVDXk"
-    ngx_username = "sre-devops"
-    ngx_password = "QaMj8veb6RLkwPgkwb3SXBNs"
+
 }
 
 resource "comwork_instance" "my_project" {
