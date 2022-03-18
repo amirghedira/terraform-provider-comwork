@@ -1,5 +1,4 @@
 
-
 terraform {
   required_providers {
     comwork = {
@@ -8,8 +7,6 @@ terraform {
     }
   }
 }
-
-
 
 provider "comwork" {
     region = "fr-par-1"
