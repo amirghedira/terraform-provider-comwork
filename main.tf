@@ -23,8 +23,6 @@ resource "comwork_instance" "my_project" {
 
 }
 
-
 output "com_instance_output" {
-
   value = comwork_instance.my_project.project_name
 }
