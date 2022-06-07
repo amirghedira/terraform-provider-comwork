@@ -5,8 +5,9 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/comwork/comwork-provider/api/client"
+	"strconv"
 
+	"github.com/comwork/comwork-provider/api/client"
 	"github.com/hashicorp/terraform-plugin-sdk/helper/schema"
 )
 
@@ -81,7 +82,7 @@ func resourceInstance() *schema.Resource {
 			},
 			
 			"project_id": {
-				Type:        schema.TypeString,
+				Type:        schema.TypeInt,
 				Optional:    true,
 				Description: "project attached to this resource",
 			},
@@ -104,14 +105,14 @@ func instanceCreateItem(d *schema.ResourceData, m interface{}) error {
 		Environment: d.Get("environment").(string),
 		Instance_type: d.Get("instance_type").(string),
 		Status: d.Get("status").(string),
-		Project: d.Get("project_id").(string),
+		Project: d.Get("project_id").(int),
 	}
 	created_instance ,err := apiClient.AddInstance(&instance)
 
 	if err != nil {
 		return err
 	}
-	d.SetId(created_instance.Id)
+	d.SetId(strconv.Itoa(created_instance.Id))
 	return nil
 }
 
@@ -128,7 +129,8 @@ func instanceReadItem(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 
-	d.SetId(item.Id)
+	d.SetId(strconv.Itoa(item.Id))
+
 	d.Set("name", item.Name)
 	d.Set("instance_type", item.Instance_type)
 	d.Set("environment", item.Environment)
@@ -146,7 +148,7 @@ func instanceUpdateItem(d *schema.ResourceData, m interface{}) error {
 		Environment: d.Get("environment").(string),
 		Instance_type: d.Get("instance_type").(string),
 		Status: d.Get("status").(string),
-		Project: d.Get("project_id").(string),
+		Project: d.Get("project_id").(int),
 	}
 
 	err := apiClient.UpdateInstance(&instance)

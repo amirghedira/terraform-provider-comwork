@@ -28,19 +28,10 @@ func Provider() terraform.ResourceProvider {
 				Required:    true,
 				DefaultFunc: schema.EnvDefaultFunc("SERVICE_TOKEN", ""),
 			},
-			"ngx_username": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("SERVICE_NGINX_USERNAME", ""),
-			},
-			"ngx_password": {
-				Type:        schema.TypeString,
-				Required:    true,
-				DefaultFunc: schema.EnvDefaultFunc("SERVICE_NGINX_PASSWORD", ""),
-			},
 		},
 		ResourcesMap: map[string]*schema.Resource{
 			"comwork_instance": resourceInstance(),
+			"comwork_project": resourceProject(),
 
 		},
 		ConfigureFunc: providerConfigure,

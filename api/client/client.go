@@ -15,14 +15,29 @@ type Client struct {
 	httpClient *http.Client
 }
 
+type ErrorResponse struct {
+	Error string `json:"error"`
+}
+
+
+type Project struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+	Url string `json:"url"`
+	Region string `json:"region"`
+	CreatedAt string `json:"created_at"`
+
+}
+
+
 
 type Instance struct {
-	Id string `json:"id"`
+	Id int `json:"id"`
 	Name string `json:"name"`
 	Environment string `json:"environment"`
 	Instance_type string `json:"instance_type"`
 	Status string `json:"status"`
-	Project string `json:"project_id"`
+	Project int `json:"project_id"`
 	Region string `json:"region"`
 
 }
@@ -56,7 +71,7 @@ func (c *Client) AddInstance(instance *Instance) (*Instance, error) {
 	if err != nil {
 		return nil, err
 	}
-	respBody, err := c.httpRequest(fmt.Sprintf("instance/%s/provision/%s",c.region, instance.Environment), "POST", buf)
+	respBody, err := c.httpRequest(fmt.Sprintf("/instance/%s/provision/%s",c.region, instance.Environment), "POST", buf)
 	if err != nil {
 		return nil, err
 	}
@@ -68,13 +83,15 @@ func (c *Client) AddInstance(instance *Instance) (*Instance, error) {
 	return created_instance, nil
 }
 
+
+
 func (c *Client) UpdateInstance(instance *Instance) error {
 	buf := bytes.Buffer{}
 	err := json.NewEncoder(&buf).Encode(instance)
 	if err != nil {
 		return err
 	}
-	_, err = c.httpRequest(fmt.Sprintf("/instance/%s/%s", c.region,instance.Id), "PATCH", buf)
+	_, err = c.httpRequest(fmt.Sprintf("/instance/%s/%v", c.region,instance.Id), "PATCH", buf)
 	if err != nil {
 		return err
 	}
@@ -88,6 +105,48 @@ func (c *Client) DeleteInstance(instanceId string) error {
 	}
 	return nil
 }
+
+
+func (c *Client) GetProject(projectId string) (*Project, error) {
+	body, err := c.httpRequest(fmt.Sprintf("/project/%s/%s",c.region, projectId), "GET", bytes.Buffer{})
+	if err != nil {
+		return nil, err
+	}
+	project := &Project{}
+	err = json.NewDecoder(body).Decode(project)
+	if err != nil {
+		return nil, err
+	}
+	return project, nil
+}
+
+func (c *Client) AddProject(project *Project) (*Project, error) {
+	buf := bytes.Buffer{}
+	project.Region = c.region
+	err := json.NewEncoder(&buf).Encode(project)
+	if err != nil {
+		return nil, err
+	}
+	respBody, err := c.httpRequest(fmt.Sprintf("/project/%s",c.region), "POST", buf)
+	if err != nil {
+		return nil, err
+	}
+	created_project := &Project{}
+	err = json.NewDecoder(respBody).Decode(created_project)
+	if err != nil {
+		return nil, err
+	}
+	return created_project, nil
+}
+
+func (c *Client) DeleteProject(projectId string) error {
+	_, err := c.httpRequest(fmt.Sprintf("/project/%s/%s", c.region,projectId), "DELETE", bytes.Buffer{})
+	if err != nil {
+		return err
+	}
+	return nil
+}
+
 
 func (c *Client) httpRequest(path, method string, body bytes.Buffer) (closer io.ReadCloser, err error) {
 	req, err := http.NewRequest(method, c.requestPath(path), &body)
@@ -110,13 +169,10 @@ func (c *Client) httpRequest(path, method string, body bytes.Buffer) (closer io.
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK {
-		respBody := new(bytes.Buffer)
-		_, err := respBody.ReadFrom(resp.Body)
-		if err != nil {
-			return nil, fmt.Errorf("got a non 200 status code: %v - %s", resp.StatusCode, respBody.String())
-		}
-		return nil, fmt.Errorf("got a non 200 status code: %v - %s", resp.StatusCode, respBody.String())
+	if resp.StatusCode != http.StatusOK &&resp.StatusCode != http.StatusCreated {
+		errorBody := &ErrorResponse{}
+		json.NewDecoder(resp.Body).Decode(errorBody)
+		return nil, fmt.Errorf("%s", errorBody.Error)
 	}
 	return resp.Body, nil
 }
