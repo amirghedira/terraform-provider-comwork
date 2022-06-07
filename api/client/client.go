@@ -34,7 +34,7 @@ type Instance struct {
 	Id int `json:"id"`
 	Name string `json:"name"`
 	Environment string `json:"environment"`
-	Instance_type string `json:"instance_type"`
+	Instance_type string `json:"type"`
 	Status string `json:"status"`
 	Project int `json:"project_id"`
 	Region string `json:"region"`

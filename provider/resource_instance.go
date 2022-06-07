@@ -163,8 +163,9 @@ func instanceReadItem(d *schema.ResourceData, m interface{}) error {
 
 func instanceUpdateItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
-
+	instance_id ,_ :=strconv.Atoi(d.Id())
 	instance := client.Instance{
+		Id: instance_id,
 		Name: d.Get("name").(string),
 		Environment: d.Get("environment").(string),
 		Instance_type: d.Get("instance_type").(string),
