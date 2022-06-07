@@ -56,19 +56,14 @@ func validateInstanceType(v interface{}, k string) (ws []string, es []error) {
 func resourceInstance() *schema.Resource {
 	return &schema.Resource{
 		Schema: map[string]*schema.Schema{
-			"project_name": {
+			"name": {
 				Type:         schema.TypeString,
 				Required:     true,
-				Description:  "The name of the project",
+				Description:  "The name of the instance",
 				ForceNew:     true,
 				ValidateFunc: validateName,
 			},
-			"stack_name": {
-				Type:        schema.TypeString,
-				Required:    true,
-				Description: "The name of the stack",
-			},
-			"project_type": {
+			"environment": {
 				Type:        schema.TypeString,
 				Required:     true,
 				Description: "Type of the project",
@@ -85,10 +80,10 @@ func resourceInstance() *schema.Resource {
 				Description: "status of the instance (poweroff,poweron)",
 			},
 			
-			"email": {
+			"project_id": {
 				Type:        schema.TypeString,
 				Optional:    true,
-				Description: "Email attached to this resource",
+				Description: "project attached to this resource",
 			},
 		},
 		Create: instanceCreateItem,
@@ -104,20 +99,19 @@ func resourceInstance() *schema.Resource {
 
 func instanceCreateItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
-	project := client.Project{
-		Project_name: d.Get("project_name").(string),
-		Stack_name: d.Get("stack_name").(string),
-		Project_type: d.Get("project_type").(string),
+	instance := client.Instance{
+		Name: d.Get("name").(string),
+		Environment: d.Get("environment").(string),
 		Instance_type: d.Get("instance_type").(string),
 		Status: d.Get("status").(string),
-		Email: d.Get("email").(string),
+		Project: d.Get("project_id").(string),
 	}
-	err := apiClient.AddProject(&project)
+	created_instance ,err := apiClient.AddInstance(&instance)
 
 	if err != nil {
 		return err
 	}
-	d.SetId(project.Project_name)
+	d.SetId(created_instance.Id)
 	return nil
 }
 
@@ -125,7 +119,7 @@ func instanceReadItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
 
 	itemId := d.Id()
-	item, err := apiClient.GetProject(itemId)
+	item, err := apiClient.GetInstance(itemId)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			d.SetId("")
@@ -134,12 +128,12 @@ func instanceReadItem(d *schema.ResourceData, m interface{}) error {
 		}
 	}
 
-	d.SetId(item.Project_name)
-	d.Set("project_name", item.Project_name)
+	d.SetId(item.Id)
+	d.Set("name", item.Name)
 	d.Set("instance_type", item.Instance_type)
-	d.Set("project_type", item.Project_type)
+	d.Set("environment", item.Environment)
 	d.Set("status", item.Status)
-	d.Set("email", item.Email)
+	d.Set("project_id", item.Project)
 
 	return nil
 }
@@ -147,16 +141,15 @@ func instanceReadItem(d *schema.ResourceData, m interface{}) error {
 func instanceUpdateItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
 
-	project := client.Project{
-		Project_name: d.Get("project_name").(string),
-		Stack_name: d.Get("project_name").(string),
-		Project_type: d.Get("project_type").(string),
+	instance := client.Instance{
+		Name: d.Get("name").(string),
+		Environment: d.Get("environment").(string),
 		Instance_type: d.Get("instance_type").(string),
 		Status: d.Get("status").(string),
-		Email: d.Get("email").(string),
+		Project: d.Get("project_id").(string),
 	}
 
-	err := apiClient.UpdateProject(&project)
+	err := apiClient.UpdateInstance(&instance)
 	if err != nil {
 		return err
 	}
@@ -166,9 +159,9 @@ func instanceUpdateItem(d *schema.ResourceData, m interface{}) error {
 func instanceDeleteItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
 
-	projectId := d.Id()
+	instanceId := d.Id()
 
-	err := apiClient.DeleteProject(projectId)
+	err := apiClient.DeleteInstance(instanceId)
 	if err != nil {
 		return err
 	}
@@ -179,8 +172,8 @@ func instanceDeleteItem(d *schema.ResourceData, m interface{}) error {
 func instanceExistsItem(d *schema.ResourceData, m interface{}) (bool, error) {
 	apiClient := m.(*client.Client)
 
-	projectId := d.Id()
-	_, err := apiClient.GetProject(projectId)
+	instanceId := d.Id()
+	_, err := apiClient.GetInstance(instanceId)
 	if err != nil {
 		if strings.Contains(err.Error(), "not found") {
 			return false, nil

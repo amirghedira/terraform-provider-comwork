@@ -50,9 +50,7 @@ func Provider() terraform.ResourceProvider {
 func providerConfigure(d *schema.ResourceData) (interface{}, error) {
 	region := d.Get("region").(string)
 	token := d.Get("token").(string)
-	ngx_username := d.Get("ngx_username").(string)
-	ngx_password := d.Get("ngx_password").(string)
 
-	return client.NewClient(region, token,ngx_username,ngx_password), nil
+	return client.NewClient(region, token), nil
 
 }

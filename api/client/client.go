@@ -12,89 +12,77 @@ import (
 type Client struct {
 	region   string
 	authToken  string
-	ngx_username string
-	ngx_password string
 	httpClient *http.Client
 }
 
 
-type Project struct {
-	Project_name string `json:"project_name"`
-	Stack_name string `json:"stack_name"` 
-	Project_type string `json:"project_type"`
+type Instance struct {
+	Id string `json:"id"`
+	Name string `json:"name"`
+	Environment string `json:"environment"`
 	Instance_type string `json:"instance_type"`
 	Status string `json:"status"`
-	Email string `json:"email"`
+	Project string `json:"project_id"`
 	Region string `json:"region"`
 
 }
 
-func NewClient(region string, token string, nginx_username string, nginx_password string) *Client {
+func NewClient(region string, token string) *Client {
 	return &Client{
 		region:       region,
 		authToken:  token,
-		ngx_username: nginx_username,
-		ngx_password: nginx_password,
 		httpClient: &http.Client{},
 	}
 }
 
-// GetAll Retrieves all of the Items from the server
-// func (c *Client) GetAll() (*map[string]Project, error) {
-// 	body, err := c.httpRequest("item", "GET", bytes.Buffer{})
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	items := map[string]Project{}
-// 	err = json.NewDecoder(body).Decode(&items)
-// 	if err != nil {
-// 		return nil, err
-// 	}
-// 	return &items, nil
-// }
 
-func (c *Client) GetProject(name string) (*Project, error) {
-	body, err := c.httpRequest(fmt.Sprintf("/instance/%v", name), "GET", bytes.Buffer{})
+func (c *Client) GetInstance(instanceId string) (*Instance, error) {
+	body, err := c.httpRequest(fmt.Sprintf("/instance/%s/%v",c.region, instanceId), "GET", bytes.Buffer{})
 	if err != nil {
 		return nil, err
 	}
-	project := &Project{}
-	err = json.NewDecoder(body).Decode(project)
+	instance := &Instance{}
+	err = json.NewDecoder(body).Decode(instance)
 	if err != nil {
 		return nil, err
 	}
-	return project, nil
+	return instance, nil
 }
 
-func (c *Client) AddProject(project *Project) error {
+func (c *Client) AddInstance(instance *Instance) (*Instance, error) {
 	buf := bytes.Buffer{}
-	project.Region = c.region
-	err := json.NewEncoder(&buf).Encode(project)
+	instance.Region = c.region
+	err := json.NewEncoder(&buf).Encode(instance)
+	if err != nil {
+		return nil, err
+	}
+	respBody, err := c.httpRequest(fmt.Sprintf("instance/%s/provision/%s",c.region, instance.Environment), "POST", buf)
+	if err != nil {
+		return nil, err
+	}
+	created_instance := &Instance{}
+	err = json.NewDecoder(respBody).Decode(created_instance)
+	if err != nil {
+		return nil, err
+	}
+	return created_instance, nil
+}
+
+func (c *Client) UpdateInstance(instance *Instance) error {
+	buf := bytes.Buffer{}
+	err := json.NewEncoder(&buf).Encode(instance)
 	if err != nil {
 		return err
 	}
-	_, err = c.httpRequest(fmt.Sprintf("/provision/%s", project.Project_type), "POST", buf)
+	_, err = c.httpRequest(fmt.Sprintf("/instance/%s/%s", c.region,instance.Id), "PATCH", buf)
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (c *Client) UpdateProject(project *Project) error {
-	buf := bytes.Buffer{}
-	err := json.NewEncoder(&buf).Encode(project)
-	if err != nil {
-		return err
-	}
-	_, err = c.httpRequest(fmt.Sprintf("/instance/%s", project.Project_name), "PATCH", buf)
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (c *Client) DeleteProject(itemName string) error {
-	_, err := c.httpRequest(fmt.Sprintf("/instance/%s", itemName), "DELETE", bytes.Buffer{})
+func (c *Client) DeleteInstance(instanceId string) error {
+	_, err := c.httpRequest(fmt.Sprintf("/instance/%s/%s", c.region,instanceId), "DELETE", bytes.Buffer{})
 	if err != nil {
 		return err
 	}
@@ -105,7 +93,6 @@ func (c *Client) httpRequest(path, method string, body bytes.Buffer) (closer io.
 	req, err := http.NewRequest(method, c.requestPath(path), &body)
 
 	req.Header.Set("X-User-Token", c.authToken)
-	req.SetBasicAuth(c.ngx_username,c.ngx_password)
 
 
 	if err != nil {
