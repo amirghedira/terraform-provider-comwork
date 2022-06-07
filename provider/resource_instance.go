@@ -67,13 +67,23 @@ func resourceInstance() *schema.Resource {
 			"environment": {
 				Type:        schema.TypeString,
 				Required:     true,
+				ForceNew:     true,
 				Description: "Type of the project",
 			},
 			"instance_type": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				ForceNew:     true,
 				Description: "Type of the instance",
 				ValidateFunc: validateInstanceType,
+			},
+			"attach": {
+				Type:         schema.TypeBool,
+				Optional:     true,
+				Default: false,
+				Description:  "Whether the instance will be attached to a project or created from scratch",
+				ForceNew:     true,
+				ValidateFunc: validateName,
 			},
 			"status": {
 				Type:        schema.TypeString,
@@ -84,6 +94,7 @@ func resourceInstance() *schema.Resource {
 			"project_id": {
 				Type:        schema.TypeInt,
 				Optional:    true,
+				ForceNew:     true,
 				Description: "project attached to this resource",
 			},
 		},
@@ -106,14 +117,23 @@ func instanceCreateItem(d *schema.ResourceData, m interface{}) error {
 		Instance_type: d.Get("instance_type").(string),
 		Status: d.Get("status").(string),
 		Project: d.Get("project_id").(int),
+		Attach: d.Get("attach").(bool),
 	}
-	created_instance ,err := apiClient.AddInstance(&instance)
-
-	if err != nil {
-		return err
+	if instance.Attach{
+		created_instance ,err := apiClient.AttachInstance(&instance)
+		if err != nil {
+			return err
+		}
+		d.SetId(strconv.Itoa(created_instance.Id))
+		return nil
+	} else {
+		created_instance ,err := apiClient.AddInstance(&instance)
+		if err != nil {
+			return err
+		}
+		d.SetId(strconv.Itoa(created_instance.Id))
+		return nil
 	}
-	d.SetId(strconv.Itoa(created_instance.Id))
-	return nil
 }
 
 func instanceReadItem(d *schema.ResourceData, m interface{}) error {
@@ -134,6 +154,7 @@ func instanceReadItem(d *schema.ResourceData, m interface{}) error {
 	d.Set("name", item.Name)
 	d.Set("instance_type", item.Instance_type)
 	d.Set("environment", item.Environment)
+	d.Set("status", item.Status)
 	d.Set("status", item.Status)
 	d.Set("project_id", item.Project)
 

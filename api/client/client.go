@@ -26,7 +26,6 @@ type Project struct {
 	Url string `json:"url"`
 	Region string `json:"region"`
 	CreatedAt string `json:"created_at"`
-
 }
 
 
@@ -39,6 +38,8 @@ type Instance struct {
 	Status string `json:"status"`
 	Project int `json:"project_id"`
 	Region string `json:"region"`
+	Attach bool `json:"attach"`
+
 
 }
 
@@ -83,6 +84,24 @@ func (c *Client) AddInstance(instance *Instance) (*Instance, error) {
 	return created_instance, nil
 }
 
+func (c *Client) AttachInstance(instance *Instance) (*Instance, error) {
+	buf := bytes.Buffer{}
+	instance.Region = c.region
+	err := json.NewEncoder(&buf).Encode(instance)
+	if err != nil {
+		return nil, err
+	}
+	respBody, err := c.httpRequest(fmt.Sprintf("/instance/%s/attach",c.region), "POST", buf)
+	if err != nil {
+		return nil, err
+	}
+	created_instance := &Instance{}
+	err = json.NewDecoder(respBody).Decode(created_instance)
+	if err != nil {
+		return nil, err
+	}
+	return created_instance, nil
+}
 
 
 func (c *Client) UpdateInstance(instance *Instance) error {
