@@ -41,13 +41,13 @@ func validateInstanceType(v interface{}, k string) (ws []string, es []error) {
 		errs = append(errs, fmt.Errorf("name cannot contain whitespace. Got %s", value))
 		return warns, errs
 	}
-	instanceAllowedTypes := map[string]bool {
-		"DEV1-S": true,
-		"DEV1-M": true,
-		"DEV1-L": true,
+	instanceAllowedTypes := map[string]bool{
+		"DEV1-S":  true,
+		"DEV1-M":  true,
+		"DEV1-L":  true,
 		"DEV1-XL": true,
 	}
-	if !instanceAllowedTypes[value]{
+	if !instanceAllowedTypes[value] {
 		errs = append(errs, fmt.Errorf("no instance type with that name. Got %s", value))
 		return warns, errs
 	}
@@ -66,35 +66,35 @@ func resourceInstance() *schema.Resource {
 			},
 			"environment": {
 				Type:        schema.TypeString,
-				Required:     true,
-				ForceNew:     true,
+				Required:    true,
+				ForceNew:    true,
 				Description: "Type of the project",
 			},
 			"instance_type": {
-				Type:        schema.TypeString,
-				Optional:    true,
+				Type:         schema.TypeString,
+				Optional:     true,
 				ForceNew:     true,
-				Description: "Type of the instance",
+				Description:  "Type of the instance",
 				ValidateFunc: validateInstanceType,
 			},
 			"attach": {
-				Type:         schema.TypeBool,
-				Optional:     true,
-				Default: false,
-				Description:  "Whether the instance will be attached to a project or created from scratch",
-				ForceNew:     true,
-				ValidateFunc: validateName,
+				Type:        schema.TypeBool,
+				Optional:    true,
+				Default:     false,
+				Description: "Whether the instance will be attached to a project or created from scratch",
+				ForceNew:    true,
 			},
 			"status": {
 				Type:        schema.TypeString,
 				Optional:    true,
+				Default:     "poweron",
 				Description: "status of the instance (poweroff,poweron)",
 			},
-			
+
 			"project_id": {
 				Type:        schema.TypeInt,
 				Optional:    true,
-				ForceNew:     true,
+				ForceNew:    true,
 				Description: "project attached to this resource",
 			},
 		},
@@ -112,22 +112,22 @@ func resourceInstance() *schema.Resource {
 func instanceCreateItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
 	instance := client.Instance{
-		Name: d.Get("name").(string),
-		Environment: d.Get("environment").(string),
+		Name:          d.Get("name").(string),
+		Environment:   d.Get("environment").(string),
 		Instance_type: d.Get("instance_type").(string),
-		Status: d.Get("status").(string),
-		Project: d.Get("project_id").(int),
-		Attach: d.Get("attach").(bool),
+		Status:        d.Get("status").(string),
+		Project:       d.Get("project_id").(int),
+		Attach:        d.Get("attach").(bool),
 	}
-	if instance.Attach{
-		created_instance ,err := apiClient.AttachInstance(&instance)
+	if d.Get("attach").(bool) == true {
+		created_instance, err := apiClient.AttachInstance(&instance)
 		if err != nil {
 			return err
 		}
 		d.SetId(strconv.Itoa(created_instance.Id))
 		return nil
 	} else {
-		created_instance ,err := apiClient.AddInstance(&instance)
+		created_instance, err := apiClient.AddInstance(&instance)
 		if err != nil {
 			return err
 		}
@@ -154,23 +154,31 @@ func instanceReadItem(d *schema.ResourceData, m interface{}) error {
 	d.Set("name", item.Name)
 	d.Set("instance_type", item.Instance_type)
 	d.Set("environment", item.Environment)
-	d.Set("status", item.Status)
-	d.Set("status", item.Status)
 	d.Set("project_id", item.Project)
+	switch item.Status {
+	case "active":
+		d.Set("status", "poweron")
+
+	case "poweredoff":
+		d.Set("status", "poweroff")
+
+	default:
+		d.Set("status", "poweron")
+	}
 
 	return nil
 }
 
 func instanceUpdateItem(d *schema.ResourceData, m interface{}) error {
 	apiClient := m.(*client.Client)
-	instance_id ,_ :=strconv.Atoi(d.Id())
+	instance_id, _ := strconv.Atoi(d.Id())
 	instance := client.Instance{
-		Id: instance_id,
-		Name: d.Get("name").(string),
-		Environment: d.Get("environment").(string),
+		Id:            instance_id,
+		Name:          d.Get("name").(string),
+		Environment:   d.Get("environment").(string),
 		Instance_type: d.Get("instance_type").(string),
-		Status: d.Get("status").(string),
-		Project: d.Get("project_id").(int),
+		Status:        d.Get("status").(string),
+		Project:       d.Get("project_id").(int),
 	}
 
 	err := apiClient.UpdateInstance(&instance)

@@ -2,11 +2,11 @@
 echo "=> deleting previous version"
 rm -rf /Users/ghediraamir/.terraform.d/plugins/terraform.local/local/comwork/*
 echo "=> deleting terraform setup"
-# rm -rf .terraform
+rm -rf .terraform
 # rm -rf terraform.*
 # rm -rf *tfstate*
 
-# rm .terraform.lock.hcl
+rm .terraform.lock.hcl
 
 VERSION=${1}
 echo "=> building terraform-provider-comwork_${VERSION}"

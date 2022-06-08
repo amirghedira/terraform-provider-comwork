@@ -8,9 +8,8 @@ import (
 	"net/http"
 )
 
-
 type Client struct {
-	region   string
+	region     string
 	authToken  string
 	httpClient *http.Client
 }
@@ -19,41 +18,35 @@ type ErrorResponse struct {
 	Error string `json:"error"`
 }
 
-
 type Project struct {
-	Id int `json:"id"`
-	Name string `json:"name"`
-	Url string `json:"url"`
-	Region string `json:"region"`
+	Id        int    `json:"id"`
+	Name      string `json:"name"`
+	Url       string `json:"url"`
+	Region    string `json:"region"`
 	CreatedAt string `json:"created_at"`
 }
 
-
-
 type Instance struct {
-	Id int `json:"id"`
-	Name string `json:"name"`
-	Environment string `json:"environment"`
+	Id            int    `json:"id"`
+	Name          string `json:"name"`
+	Environment   string `json:"environment"`
 	Instance_type string `json:"type"`
-	Status string `json:"status"`
-	Project int `json:"project_id"`
-	Region string `json:"region"`
-	Attach bool `json:"attach"`
-
-
+	Status        string `json:"status"`
+	Project       int    `json:"project_id"`
+	Region        string `json:"region"`
+	Attach        bool   `json:"attach"`
 }
 
 func NewClient(region string, token string) *Client {
 	return &Client{
-		region:       region,
+		region:     region,
 		authToken:  token,
 		httpClient: &http.Client{},
 	}
 }
 
-
 func (c *Client) GetInstance(instanceId string) (*Instance, error) {
-	body, err := c.httpRequest(fmt.Sprintf("/instance/%s/%v",c.region, instanceId), "GET", bytes.Buffer{})
+	body, err := c.httpRequest(fmt.Sprintf("/instance/%s/%v", c.region, instanceId), "GET", bytes.Buffer{})
 	if err != nil {
 		return nil, err
 	}
@@ -72,7 +65,7 @@ func (c *Client) AddInstance(instance *Instance) (*Instance, error) {
 	if err != nil {
 		return nil, err
 	}
-	respBody, err := c.httpRequest(fmt.Sprintf("/instance/%s/provision/%s",c.region, instance.Environment), "POST", buf)
+	respBody, err := c.httpRequest(fmt.Sprintf("/instance/%s/provision/%s", c.region, instance.Environment), "POST", buf)
 	if err != nil {
 		return nil, err
 	}
@@ -91,7 +84,7 @@ func (c *Client) AttachInstance(instance *Instance) (*Instance, error) {
 	if err != nil {
 		return nil, err
 	}
-	respBody, err := c.httpRequest(fmt.Sprintf("/instance/%s/attach",c.region), "POST", buf)
+	respBody, err := c.httpRequest(fmt.Sprintf("/instance/%s/attach/%v", c.region, instance.Project), "POST", buf)
 	if err != nil {
 		return nil, err
 	}
@@ -103,14 +96,13 @@ func (c *Client) AttachInstance(instance *Instance) (*Instance, error) {
 	return created_instance, nil
 }
 
-
 func (c *Client) UpdateInstance(instance *Instance) error {
 	buf := bytes.Buffer{}
 	err := json.NewEncoder(&buf).Encode(instance)
 	if err != nil {
 		return err
 	}
-	_, err = c.httpRequest(fmt.Sprintf("/instance/%s/%v", c.region,instance.Id), "PATCH", buf)
+	_, err = c.httpRequest(fmt.Sprintf("/instance/%s/%v", c.region, instance.Id), "PATCH", buf)
 	if err != nil {
 		return err
 	}
@@ -118,16 +110,15 @@ func (c *Client) UpdateInstance(instance *Instance) error {
 }
 
 func (c *Client) DeleteInstance(instanceId string) error {
-	_, err := c.httpRequest(fmt.Sprintf("/instance/%s/%s", c.region,instanceId), "DELETE", bytes.Buffer{})
+	_, err := c.httpRequest(fmt.Sprintf("/instance/%s/%s", c.region, instanceId), "DELETE", bytes.Buffer{})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-
 func (c *Client) GetProject(projectId string) (*Project, error) {
-	body, err := c.httpRequest(fmt.Sprintf("/project/%s/%s",c.region, projectId), "GET", bytes.Buffer{})
+	body, err := c.httpRequest(fmt.Sprintf("/project/%s/%s", c.region, projectId), "GET", bytes.Buffer{})
 	if err != nil {
 		return nil, err
 	}
@@ -146,7 +137,7 @@ func (c *Client) AddProject(project *Project) (*Project, error) {
 	if err != nil {
 		return nil, err
 	}
-	respBody, err := c.httpRequest(fmt.Sprintf("/project/%s",c.region), "POST", buf)
+	respBody, err := c.httpRequest(fmt.Sprintf("/project/%s", c.region), "POST", buf)
 	if err != nil {
 		return nil, err
 	}
@@ -159,19 +150,17 @@ func (c *Client) AddProject(project *Project) (*Project, error) {
 }
 
 func (c *Client) DeleteProject(projectId string) error {
-	_, err := c.httpRequest(fmt.Sprintf("/project/%s/%s", c.region,projectId), "DELETE", bytes.Buffer{})
+	_, err := c.httpRequest(fmt.Sprintf("/project/%s/%s", c.region, projectId), "DELETE", bytes.Buffer{})
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-
 func (c *Client) httpRequest(path, method string, body bytes.Buffer) (closer io.ReadCloser, err error) {
 	req, err := http.NewRequest(method, c.requestPath(path), &body)
 
 	req.Header.Set("X-User-Token", c.authToken)
-
 
 	if err != nil {
 		return nil, err
@@ -182,13 +171,13 @@ func (c *Client) httpRequest(path, method string, body bytes.Buffer) (closer io.
 	default:
 		req.Header.Add("Content-Type", "application/json")
 	}
-	
+
 	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
 
-	if resp.StatusCode != http.StatusOK &&resp.StatusCode != http.StatusCreated {
+	if resp.StatusCode != http.StatusOK && resp.StatusCode != http.StatusCreated {
 		errorBody := &ErrorResponse{}
 		json.NewDecoder(resp.Body).Decode(errorBody)
 		return nil, fmt.Errorf("%s", errorBody.Error)
