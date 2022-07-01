@@ -29,7 +29,7 @@ type Project struct {
 type Instance struct {
 	Id            int    `json:"id"`
 	Name          string `json:"name"`
-	Environment   string `json:"environment.path"`
+	Environment   string `json:"environment"`
 	Instance_type string `json:"type"`
 	Status        string `json:"status"`
 	Project       int    `json:"project_id"`
